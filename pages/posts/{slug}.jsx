@@ -36,12 +36,33 @@ const SLUGLIST = gql`
     }
 `;
 
-export async function getStaticProps() {
-  const {posts} = await graphcms.request(QUERY);
+export async function getStaticPaths() {
+    const {posts} = await graphcms.request(SLUGLIST);
+    return {
+        paths: posts.map((post) => 
+        ({ params: { slug: post.slug }
+         })),
+        fallback: false
+    }
+}
+
+
+export async function getStaticProps({params}) {
+  const slug = params.slug;
+  const data = await graphcms.request(QUERY, {slug});
+  const post = data.post;
   return {
     props: {
-      posts,
+      post,
     },
     revalidate: 10,
   }
+}
+
+export default function BlogPost({post}) {
+    return (
+        <main className={styles.blog}>
+            <img src={post.coverPhoto.url} className={styles.cover} alt="" />
+        </main>
+    )
 }
